@@ -1,0 +1,5 @@
+# Ignore build output
+llr
+
+# Ignore nix outputs
+result*
