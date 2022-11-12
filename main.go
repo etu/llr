@@ -53,6 +53,12 @@ func main() {
 		scanner = bufio.NewScanner(os.Stdin)
 	}
 
+	if debug {
+		fmt.Fprintln(os.Stderr, "Flags:")
+		fmt.Fprintln(os.Stderr, " -debug", debug)
+		fmt.Fprintln(os.Stderr, " -width", width)
+	}
+
 	for scanner.Scan() {
 		line := scanner.Text()
 
