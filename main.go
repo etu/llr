@@ -3,6 +3,7 @@ package main // import "github.com/etu/llr"
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
 	"log"
 	"os"
@@ -50,5 +51,18 @@ func main() {
 	// we fall back to reading stdin.
 	if scanner == nil {
 		scanner = bufio.NewScanner(os.Stdin)
+	}
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// If empty line, just print empty line
+		if len(line) == 0 {
+			fmt.Println()
+		} else if len(line) > int(width) {
+			fmt.Println(string(line[0:width]))
+		} else {
+			fmt.Println(line)
+		}
 	}
 }
