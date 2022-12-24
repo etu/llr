@@ -1,74 +1,58 @@
 package main // import "github.com/etu/llr"
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
-	"log"
+	"io"
+	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func main() {
-	var debug bool
-	var width uint
-	var scanner *bufio.Scanner
-
-	// Detect terminal size.
-	detectedWidth, _, err := terminal.GetSize(1)
-
-	// Error out if terminal size detection fails.
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Register parameter flags.
-	flag.BoolVar(&debug, "debug", false, "Enable or disable debug output")
-	flag.UintVar(&width, "width", uint(detectedWidth), "Specify a fixed with instead of terminal width")
+	// Parse the command line flags
+	width := flag.Int("width", getTerminalWidth(), "maximum width of the output")
+	flag.IntVar(width, "w", *width, "maximum width of the output")
+	debug := flag.Bool("debug", false, "enable debug output")
+	flag.BoolVar(debug, "d", *debug, "enable debug output")
 	flag.Parse()
 
-	// If we get args, try to find a filename
-	if len(flag.Args()) >= 1 {
-		filename := flag.Args()[0]
+	// Get the filename argument
+	filename := "-"
+	if flag.NArg() > 0 {
+		filename = flag.Arg(0)
+	}
 
-		// If filename is "-", we can just consider it stdin. So just
-		// ignore this filename if we actually have a filename.
-		if filename != "-" {
-			file, err := os.Open(filename)
-
-			// Print error if it doesn't exist
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			defer file.Close()
-
-			scanner = bufio.NewScanner(file)
+	// Open the file or stdin
+	var reader io.Reader
+	if filename == "-" {
+		reader = os.Stdin
+	} else {
+		file, err := os.Open(filename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+			os.Exit(1)
 		}
+		defer file.Close()
+		reader = file
 	}
 
-	// If we don't already have a scanner from reading a file... then
-	// we fall back to reading stdin.
-	if scanner == nil {
-		scanner = bufio.NewScanner(os.Stdin)
+	// Read the file or stdin
+	contents, err := ioutil.ReadAll(reader)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
 	}
 
-	if debug {
+	// Split the contents of the file into lines
+	lines := strings.Split(string(contents), "\n")
+
+	// Print the lines
+	if *debug {
 		fmt.Fprintln(os.Stderr, "Flags:")
-		fmt.Fprintln(os.Stderr, " -debug", debug)
-		fmt.Fprintln(os.Stderr, " -width", width)
+		fmt.Fprintf(os.Stderr, "  width: %d\n", *width)
+		fmt.Fprintf(os.Stderr, "  debug: %t\n", *debug)
 	}
 
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		// If empty line, just print empty line
-		if len(line) == 0 {
-			fmt.Println()
-		} else if len(line) > int(width) {
-			fmt.Println(string(line[0:width]))
-		} else {
-			fmt.Println(line)
-		}
-	}
+	printLines(os.Stdout, *width, lines)
 }
