@@ -24,7 +24,7 @@ func getTerminalWidth() int {
 	out, err := cmd.Output()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to execute stty size, got error: ", err)
 	}
 
 	dimensions := strings.Split(string(out), " ")
