@@ -37,6 +37,14 @@ func main() {
 		reader = file
 	}
 
+	// Print the lines
+	if *debug {
+		fmt.Fprintln(os.Stderr, "Flags:")
+		fmt.Fprintf(os.Stderr, "  debug: %t\n", *debug)
+		fmt.Fprintf(os.Stderr, "  width: %d\n", *width)
+		fmt.Fprintf(os.Stderr, "  filename: %s\n", filename)
+	}
+
 	// Read the file or stdin
 	contents, err := ioutil.ReadAll(reader)
 	if err != nil {
@@ -45,13 +53,6 @@ func main() {
 
 	// Split the contents of the file into lines
 	lines := strings.Split(string(contents), "\n")
-
-	// Print the lines
-	if *debug {
-		fmt.Fprintln(os.Stderr, "Flags:")
-		fmt.Fprintf(os.Stderr, "  width: %d\n", *width)
-		fmt.Fprintf(os.Stderr, "  debug: %t\n", *debug)
-	}
 
 	printLines(os.Stdout, *width, lines)
 }
