@@ -11,7 +11,12 @@ import (
 // PrintLines prints the given lines to the given writer, truncating them to the given width.
 // It returns an error if there was an error writing to the writer.
 func printLines(w io.Writer, width int, lines []string) error {
-	for _, line := range lines {
+	for i, line := range lines {
+		// Skip the last line if it's empty
+		if i == len(lines)-1 && len(line) == 0 {
+			continue
+		}
+
 		// Replace tab characters with eight spaces
 		line = strings.Replace(line, "\t", "        ", -1)
 
@@ -35,5 +40,6 @@ func printLines(w io.Writer, width int, lines []string) error {
 			return err
 		}
 	}
+
 	return nil
 }

@@ -24,6 +24,16 @@ func TestPrintLines(t *testing.T) {
 			lines: []string{
 				"short",
 				"line",
+				"",
+			},
+			expected: "short\nline\n",
+		},
+		{
+			name:  "short lines with missing line break on last line",
+			width: 10,
+			lines: []string{
+				"short",
+				"line",
 			},
 			expected: "short\nline\n",
 		},
@@ -33,6 +43,7 @@ func TestPrintLines(t *testing.T) {
 			lines: []string{
 				"short",
 				"line",
+				"",
 			},
 			expected: "s\nl\n",
 		},
@@ -42,6 +53,7 @@ func TestPrintLines(t *testing.T) {
 			lines: []string{
 				"short",
 				"line",
+				"",
 			},
 			expected: "sh\nli\n",
 		},
@@ -51,6 +63,7 @@ func TestPrintLines(t *testing.T) {
 			lines: []string{
 				"this is a very long line",
 				"this is another very long line",
+				"",
 			},
 			expected: "this is a \nthis is an\n",
 		},
@@ -60,6 +73,7 @@ func TestPrintLines(t *testing.T) {
 			lines: []string{
 				"\tthis is a line with a tab character",
 				"this is a line with\ta tab character",
+				"",
 			},
 			expected: "        th\nthis is a \n",
 		},
