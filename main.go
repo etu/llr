@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -24,19 +22,6 @@ func main() {
 		filename = flag.Arg(0)
 	}
 
-	// Open the file or stdin
-	var reader io.Reader
-	if filename == "-" {
-		reader = os.Stdin
-	} else {
-		file, err := os.Open(filename)
-		if err != nil {
-			log.Fatal("Error: ", err)
-		}
-		defer file.Close()
-		reader = file
-	}
-
 	// Print the lines
 	if *debug {
 		fmt.Fprintln(os.Stderr, "Flags:")
@@ -46,7 +31,7 @@ func main() {
 	}
 
 	// Read the file or stdin
-	contents, err := ioutil.ReadAll(reader)
+	contents, err := readFileOrStdin(filename)
 	if err != nil {
 		log.Fatal("Error: ", err)
 	}
