@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
@@ -30,8 +31,7 @@ func main() {
 	} else {
 		file, err := os.Open(filename)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-			os.Exit(1)
+			log.Fatal("Error: ", err)
 		}
 		defer file.Close()
 		reader = file
@@ -40,8 +40,7 @@ func main() {
 	// Read the file or stdin
 	contents, err := ioutil.ReadAll(reader)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(1)
+		log.Fatal("Error: ", err)
 	}
 
 	// Split the contents of the file into lines
