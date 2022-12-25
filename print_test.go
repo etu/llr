@@ -1,4 +1,4 @@
-package main // import "github.com/etu/llr"
+package main
 
 import (
 	"bytes"
