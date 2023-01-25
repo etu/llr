@@ -3,3 +3,6 @@ llr
 
 # Ignore nix outputs
 result*
+
+# Ignore direnv path
+.direnv/
