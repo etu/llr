@@ -6,29 +6,39 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, flake-utils, nixpkgs, ... }: flake-utils.lib.eachDefaultSystem (system: let
-    pkgs = import nixpkgs { inherit system; };
-  in {
-    packages = flake-utils.lib.flattenTree {
-      default = pkgs.buildGoModule (let
-        version = "0.9.0.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
-      in {
-        pname = "llr";
-        inherit version;
+  outputs = {
+    self,
+    flake-utils,
+    nixpkgs,
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
+    in {
+      packages = flake-utils.lib.flattenTree {
+        default = pkgs.buildGoModule (let
+          version = "0.9.0.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
+        in {
+          pname = "llr";
+          inherit version;
 
-        src = ./.;
+          src = ./.;
 
-        vendorSha256 = "14x9ikn9jfldvs8dznzf3xabqw0d9c20gzqggmiy4pca0s9bc34z";
-      });
-    };
-
-    devShells = flake-utils.lib.flattenTree {
-      default = { pkgs, ... }: pkgs.mkShell {
-        buildInputs = [
-          pkgs.gnumake # For the Makefile
-          pkgs.go      # For building the project
-        ];
+          vendorHash = "sha256-nwy2kgaKXeJjfQ//BwRLDXC8VB/u29+Q3o06meyMqZM=";
+        });
       };
-    };
-  });
+
+      devShells = flake-utils.lib.flattenTree {
+        default = pkgs.mkShell {
+          buildInputs = [
+            pkgs.gnumake
+            pkgs.delve # debugging
+            pkgs.go # language
+            pkgs.gopls # language server
+          ];
+        };
+      };
+
+      formatter = pkgs.alejandra;
+    });
 }
