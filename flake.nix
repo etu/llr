@@ -24,7 +24,7 @@
 
           src = ./.;
 
-          vendorHash = "sha256-nwy2kgaKXeJjfQ//BwRLDXC8VB/u29+Q3o06meyMqZM=";
+          vendorHash = "sha256-rGlO/dO7uNwBeC0zTfWHgyz+E9vlOylyJqzunUJ1cAw=";
         });
       };
 
