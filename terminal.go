@@ -22,7 +22,7 @@ func getTerminalWidth() int {
 
 	// Try stty size with /dev/tty (works in watch and other pseudo-TTY environments)
 	if tty, err := os.Open("/dev/tty"); err == nil {
-		defer tty.Close()
+		defer func() { _ = tty.Close() }()
 		cmd := exec.Command("stty", "size")
 		cmd.Stdin = tty
 		if out, err := cmd.Output(); err == nil {
@@ -35,7 +35,7 @@ func getTerminalWidth() int {
 		}
 	}
 
-	// Try tput cols command (another reliable method)
+	// Try tput cols command (may not be available on all systems)
 	if out, err := exec.Command("tput", "cols").Output(); err == nil {
 		if w, err := strconv.Atoi(strings.TrimSpace(string(out))); err == nil && w > 0 {
 			return w
