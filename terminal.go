@@ -24,20 +24,25 @@ func getTerminalWidth() int {
 	out, err := cmd.Output()
 
 	if err != nil {
-		log.Fatal("Failed to execute stty size, got error: ", err)
+		// If stty fails (e.g., when running in watch or without a TTY),
+		// fall back to a default width of 80 columns
+		log.Println("Warning: Unable to detect terminal size, using default width of 80")
+		return 80
 	}
 
 	dimensions := strings.Split(string(out), " ")
 
 	if len(dimensions) != 2 {
-		log.Fatal("Error parsing output of 'stty size'")
+		log.Println("Warning: Unable to parse terminal size, using default width of 80")
+		return 80
 	}
 
 	// Convert string to int
 	width, err = strconv.Atoi(strings.TrimRight(dimensions[1], "\n"))
 
 	if err != nil {
-		log.Fatal("Error converting string to int:", err)
+		log.Println("Warning: Unable to parse terminal size, using default width of 80")
+		return 80
 	}
 
 	return width
