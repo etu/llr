@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const defaultTerminalWidth = 80
+
 // GetTerminalWidth gets the width of the terminal.
 func getTerminalWidth() int {
 	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
@@ -18,27 +20,36 @@ func getTerminalWidth() int {
 		return width
 	}
 
-	// Fall back to using 'stty size' if terminal dimensions cannot be retrieved
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	out, err := cmd.Output()
-
-	if err != nil {
-		log.Fatal("Failed to execute stty size, got error: ", err)
+	// Try stty size with /dev/tty (works in watch and other pseudo-TTY environments)
+	if tty, err := os.Open("/dev/tty"); err == nil {
+		defer func() { _ = tty.Close() }()
+		cmd := exec.Command("stty", "size")
+		cmd.Stdin = tty
+		if out, err := cmd.Output(); err == nil {
+			dimensions := strings.Split(strings.TrimSpace(string(out)), " ")
+			if len(dimensions) == 2 {
+				if w, err := strconv.Atoi(dimensions[1]); err == nil && w > 0 {
+					return w
+				}
+			}
+		}
 	}
 
-	dimensions := strings.Split(string(out), " ")
-
-	if len(dimensions) != 2 {
-		log.Fatal("Error parsing output of 'stty size'")
+	// Try tput cols command (may not be available on all systems)
+	if out, err := exec.Command("tput", "cols").Output(); err == nil {
+		if w, err := strconv.Atoi(strings.TrimSpace(string(out))); err == nil && w > 0 {
+			return w
+		}
 	}
 
-	// Convert string to int
-	width, err = strconv.Atoi(strings.TrimRight(dimensions[1], "\n"))
-
-	if err != nil {
-		log.Fatal("Error converting string to int:", err)
+	// Try COLUMNS environment variable
+	if cols := os.Getenv("COLUMNS"); cols != "" {
+		if w, err := strconv.Atoi(cols); err == nil && w > 0 {
+			return w
+		}
 	}
 
-	return width
+	// If all methods fail, fall back to the default width
+	log.Printf("Warning: Unable to detect terminal size, using default width of %d", defaultTerminalWidth)
+	return defaultTerminalWidth
 }
