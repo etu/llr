@@ -28,14 +28,14 @@ func getTerminalWidth() int {
 	if err != nil {
 		// If stty fails (e.g., when running in watch or without a TTY),
 		// fall back to a default width of 80 columns
-		log.Printf("Warning: Unable to detect terminal size, using default width of %d\n", defaultTerminalWidth)
+		log.Printf("Warning: Unable to detect terminal size, using default width of %d", defaultTerminalWidth)
 		return defaultTerminalWidth
 	}
 
 	dimensions := strings.Split(string(out), " ")
 
 	if len(dimensions) != 2 {
-		log.Printf("Warning: Invalid terminal size format, using default width of %d\n", defaultTerminalWidth)
+		log.Printf("Warning: Invalid terminal size format, using default width of %d", defaultTerminalWidth)
 		return defaultTerminalWidth
 	}
 
@@ -43,7 +43,7 @@ func getTerminalWidth() int {
 	width, err = strconv.Atoi(strings.TrimRight(dimensions[1], "\n"))
 
 	if err != nil {
-		log.Printf("Warning: Invalid terminal width value, using default width of %d\n", defaultTerminalWidth)
+		log.Printf("Warning: Invalid terminal width value, using default width of %d", defaultTerminalWidth)
 		return defaultTerminalWidth
 	}
 
