@@ -118,4 +118,3 @@ func TestGetTerminalWidthWithActualTerminal(t *testing.T) {
 		t.Errorf("getTerminalWidth() returned unreasonably large value: %d", width)
 	}
 }
-

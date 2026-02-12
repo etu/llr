@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -92,7 +93,7 @@ func TestWidthOverride(t *testing.T) {
 	input := "This is a test line that is reasonably long to test different width values"
 
 	for _, width := range widths {
-		t.Run(string(rune(width)), func(t *testing.T) {
+		t.Run(fmt.Sprintf("width_%d", width), func(t *testing.T) {
 			lines := []string{input, ""}
 			var buf bytes.Buffer
 			
@@ -140,7 +141,7 @@ func TestReadAndPrint(t *testing.T) {
 	// Process and print with different widths
 	widths := []int{10, 20, 80}
 	for _, width := range widths {
-		t.Run(string(rune(width)), func(t *testing.T) {
+		t.Run(fmt.Sprintf("width_%d", width), func(t *testing.T) {
 			lines := strings.Split(string(readContent), "\n")
 			var buf bytes.Buffer
 			
