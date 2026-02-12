@@ -27,7 +27,7 @@ func getTerminalWidth() int {
 
 	if err != nil {
 		// If stty fails (e.g., when running in watch or without a TTY),
-		// fall back to a default width of 80 columns
+		// fall back to the default width
 		log.Printf("Warning: Unable to detect terminal size, using default width of %d", defaultTerminalWidth)
 		return defaultTerminalWidth
 	}
