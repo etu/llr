@@ -33,7 +33,7 @@ func getTerminalWidth() int {
 	dimensions := strings.Split(string(out), " ")
 
 	if len(dimensions) != 2 {
-		log.Println("Warning: Unable to parse terminal size, using default width of 80")
+		log.Println("Warning: Invalid terminal size format, using default width of 80")
 		return 80
 	}
 
@@ -41,7 +41,7 @@ func getTerminalWidth() int {
 	width, err = strconv.Atoi(strings.TrimRight(dimensions[1], "\n"))
 
 	if err != nil {
-		log.Println("Warning: Unable to parse terminal size, using default width of 80")
+		log.Println("Warning: Invalid terminal width value, using default width of 80")
 		return 80
 	}
 
