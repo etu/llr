@@ -17,14 +17,14 @@
     in {
       packages = flake-utils.lib.flattenTree {
         default = pkgs.buildGoModule (let
-          version = "0.9.0.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
+          version = "0.9.2.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
         in {
           pname = "llr";
           inherit version;
 
           src = ./.;
 
-          vendorHash = "sha256-rGlO/dO7uNwBeC0zTfWHgyz+E9vlOylyJqzunUJ1cAw=";
+          vendorHash = "sha256-25a2WMXvabxUelm0OKVAN+YQ5WKb05Euq+ubWdvaXgQ=";
         });
       };
 
