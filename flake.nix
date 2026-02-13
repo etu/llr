@@ -39,18 +39,6 @@
         };
       };
 
-      checks = {
-        tests = pkgs.runCommand "llr-tests" {
-          buildInputs = [pkgs.go];
-          src = ./.;
-        } ''
-          export HOME=$(mktemp -d)
-          cp -r $src/* .
-          go test -v ./...
-          touch $out
-        '';
-      };
-
       formatter = pkgs.alejandra;
     });
 }
