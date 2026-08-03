@@ -14,6 +14,8 @@ func main() {
 	flag.IntVar(width, "w", *width, "maximum width of the output")
 	debug := flag.Bool("debug", false, "enable debug output")
 	flag.BoolVar(debug, "d", *debug, "enable debug output")
+	compact := flag.Bool("compact", false, "compact wide columns to reduce wasted padding")
+	flag.BoolVar(compact, "c", *compact, "compact wide columns to reduce wasted padding")
 	flag.Parse()
 
 	// Get the filename argument
@@ -27,6 +29,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Flags:")
 		fmt.Fprintf(os.Stderr, "  debug: %t\n", *debug)
 		fmt.Fprintf(os.Stderr, "  width: %d\n", *width)
+		fmt.Fprintf(os.Stderr, "  compact: %t\n", *compact)
 		fmt.Fprintf(os.Stderr, "  filename: %s\n", filename)
 	}
 
@@ -38,6 +41,10 @@ func main() {
 
 	// Split the contents of the file into lines
 	lines := strings.Split(string(contents), "\n")
+
+	if *compact {
+		lines = compactColumns(lines)
+	}
 
 	printLines(os.Stdout, *width, lines)
 }

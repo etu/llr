@@ -1,0 +1,9 @@
+NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT
+zroot                                                                                             70.6G   154G    96K  legacy
+zroot/local                                                                                       46.8G   154G    96K  legacy
+zroot/local/data                                                                                  1.44G   154G  1.44G  legacy
+zroot/local/nix                                                                                   8.52G   154G  8.52G  legacy
+zroot/local/var-log                                                                               2.29G   154G  2.29G  legacy
+zroot/safe                                                                                        23.6G   154G    96K  legacy
+zroot/safe/home                                                                                    160K   154G    96K  legacy
+zroot/safe/root                                                                                   14.9G   154G  3.12G  legacy
