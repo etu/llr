@@ -96,6 +96,26 @@ func TestCompactColumns(t *testing.T) {
 				"aa  b",
 			},
 		},
+		{
+			// Tools like helm ls / kubectl use text/tabwriter: each field is
+			// padded with spaces to the column's max width and then followed
+			// by a real tab, not more spaces. That padding disappears for
+			// whichever row's value exactly equals the column's max width,
+			// leaving a bare tab with no separating spaces at all. compactColumns
+			// only recognizes runs of 2+ spaces as a column separator, so that
+			// row fails to split and passes through with its tab untouched.
+			name: "tab-separated fields where a value exactly fills the column (no padding before the tab)",
+			lines: []string{
+				"NAME      \tCOL2",
+				"short     \tval1",
+				"exactmatch\tval2",
+			},
+			expected: []string{
+				"NAME        COL2",
+				"short       val1",
+				"exactmatch  val2",
+			},
+		},
 	}
 
 	for _, tt := range tests {

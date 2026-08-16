@@ -17,6 +17,13 @@ func compactColumns(lines []string) []string {
 	var colWidths []int
 
 	for i, line := range lines {
+		// Expand tabs before detecting column boundaries. Tools like helm ls
+		// or kubectl (via text/tabwriter) pad each field with spaces only up
+		// to the column's max width and then emit a real tab, so a value
+		// that exactly fills its column has no padding spaces at all before
+		// the tab. Left as-is, that bare tab wouldn't match the 2+ space
+		// separator below and the row would fail to split.
+		line = strings.ReplaceAll(line, "\t", "        ")
 		trimmed := strings.TrimRight(line, " ")
 		fields := columnSeparator.Split(trimmed, -1)
 
