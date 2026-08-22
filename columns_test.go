@@ -31,8 +31,38 @@ func TestCompactColumns(t *testing.T) {
 				"zroot                                                                                             70.6G   154G    96K  legacy",
 			},
 			expected: []string{
-				"NAME   USED   AVAIL  REFER  MOUNTPOINT",
-				"zroot  70.6G  154G   96K    legacy",
+				"NAME    USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot  70.6G   154G    96K  legacy",
+			},
+		},
+		{
+			// Real zfs list output: NAME's padding is fixed-width across all
+			// rows (so USED/AVAIL/REFER start at the same offset regardless
+			// of name length) while USED/AVAIL/REFER's own padding is on the
+			// left, right-aligning their values. Compaction should shrink
+			// the columns without flipping any of that alignment.
+			name: "right-aligned numeric columns keep their alignment",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G    96K  legacy",
+				"zroot/local                                                                                       46.8G   154G    96K  legacy",
+				"zroot/local/data                                                                                  1.44G   154G  1.44G  legacy",
+				"zroot/local/nix                                                                                   8.52G   154G  8.52G  legacy",
+				"zroot/local/var-log                                                                               2.29G   154G  2.29G  legacy",
+				"zroot/safe                                                                                        23.6G   154G    96K  legacy",
+				"zroot/safe/home                                                                                    160K   154G    96K  legacy",
+				"zroot/safe/root                                                                                   14.9G   154G  3.12G  legacy",
+			},
+			expected: []string{
+				"NAME                  USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                70.6G   154G    96K  legacy",
+				"zroot/local          46.8G   154G    96K  legacy",
+				"zroot/local/data     1.44G   154G  1.44G  legacy",
+				"zroot/local/nix      8.52G   154G  8.52G  legacy",
+				"zroot/local/var-log  2.29G   154G  2.29G  legacy",
+				"zroot/safe           23.6G   154G    96K  legacy",
+				"zroot/safe/home       160K   154G    96K  legacy",
+				"zroot/safe/root      14.9G   154G  3.12G  legacy",
 			},
 		},
 		{
