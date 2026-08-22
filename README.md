@@ -36,7 +36,7 @@ cat input.txt | llr -w 50
 
 This may be more useful in programs that produce large and wide outputs where
 you don't always care about the end of the lines, such example may in some
-cases be output from =kubectl=.
+cases be output from `kubectl`.
 
 `input-columns.txt` contains sample `zfs list` output whose `NAME` column is
 padded much wider than any actual value. Compare truncating it as-is versus
