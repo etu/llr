@@ -56,5 +56,7 @@ func main() {
 		lines = compactColumns(lines)
 	}
 
-	printLines(os.Stdout, *width, lines)
+	if err := printLines(os.Stdout, *width, lines); err != nil {
+		log.Fatal("Error: ", err)
+	}
 }
