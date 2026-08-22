@@ -1,14 +1,13 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 )
 
 func TestReadFile(t *testing.T) {
 	// Create a temporary file with some data
-	tempFile, err := ioutil.TempFile("", "test-")
+	tempFile, err := os.CreateTemp("", "test-")
 
 	if err != nil {
 		t.Fatal(err)

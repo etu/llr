@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 )
 
@@ -22,7 +21,7 @@ func readFileOrStdin(filename string) ([]byte, error) {
 	}
 
 	// Read the file or stdin
-	contents, err := ioutil.ReadAll(reader)
+	contents, err := io.ReadAll(reader)
 
 	if err != nil {
 		return nil, err
