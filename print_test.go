@@ -157,6 +157,42 @@ func TestPrintLines(t *testing.T) {
 			},
 			expected: "     \ntext\n",
 		},
+		{
+			name:  "ansi color code that fits within width is passed through untouched",
+			width: 20,
+			lines: []string{
+				"\x1b[31mred\x1b[0m",
+				"",
+			},
+			expected: "\x1b[31mred\x1b[0m\n",
+		},
+		{
+			name:  "ansi color code does not count toward width",
+			width: 3,
+			lines: []string{
+				"\x1b[31mred\x1b[0m",
+				"",
+			},
+			expected: "\x1b[31mred\x1b[0m\n",
+		},
+		{
+			name:  "truncation mid-color appends a reset so it doesn't bleed",
+			width: 4,
+			lines: []string{
+				"\x1b[31mred and more text\x1b[0m",
+				"",
+			},
+			expected: "\x1b[31mred \x1b[0m\n",
+		},
+		{
+			name:  "truncation with no escape codes does not append a reset",
+			width: 4,
+			lines: []string{
+				"plain and more text",
+				"",
+			},
+			expected: "plai\n",
+		},
 	}
 
 	// Loop through tests
