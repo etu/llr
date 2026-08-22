@@ -24,7 +24,7 @@
 
           src = ./.;
 
-          vendorHash = "sha256-25a2WMXvabxUelm0OKVAN+YQ5WKb05Euq+ubWdvaXgQ=";
+          vendorHash = "sha256-WzK+2qBPm45Sfd7PWMrTeGMliWYaHqH+qB788N7OVDg=";
 
           ldflags = ["-X main.version=${version}"];
         });
