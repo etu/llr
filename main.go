@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+// version is set at build time via -ldflags "-X main.version=...".
+var version = "dev"
+
 func main() {
 	// Parse the command line flags
 	width := flag.Int("width", getTerminalWidth(), "maximum width of the output")
@@ -16,7 +19,14 @@ func main() {
 	flag.BoolVar(debug, "d", *debug, "enable debug output")
 	compact := flag.Bool("compact", false, "compact wide columns to reduce wasted padding")
 	flag.BoolVar(compact, "c", *compact, "compact wide columns to reduce wasted padding")
+	showVersion := flag.Bool("version", false, "print the version and exit")
+	flag.BoolVar(showVersion, "v", *showVersion, "print the version and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
 
 	// Get the filename argument
 	filename := "-"

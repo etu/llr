@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -199,5 +201,28 @@ func TestStdinRead(t *testing.T) {
 	expected := "Line 1\nLine 2\nLine 3\n"
 	if buf.String() != expected {
 		t.Errorf("got %q, want %q", buf.String(), expected)
+	}
+}
+
+// TestVersionFlag verifies that --version/-v print the version baked in via
+// -ldflags and exit without trying to read a file or stdin.
+func TestVersionFlag(t *testing.T) {
+	bin := filepath.Join(t.TempDir(), "llr")
+	build := exec.Command("go", "build", "-ldflags", "-X main.version=1.2.3-test", "-o", bin, ".")
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("failed to build test binary: %v\n%s", err, out)
+	}
+
+	for _, flagName := range []string{"--version", "-version", "-v"} {
+		t.Run(flagName, func(t *testing.T) {
+			out, err := exec.Command(bin, flagName).Output()
+			if err != nil {
+				t.Fatalf("running %s failed: %v", flagName, err)
+			}
+
+			if got := strings.TrimSpace(string(out)); got != "1.2.3-test" {
+				t.Errorf("got %q, want %q", got, "1.2.3-test")
+			}
+		})
 	}
 }

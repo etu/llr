@@ -19,6 +19,7 @@ The following flags are available:
   `zfs list`) pad their first column to fit the widest *possible* value
   rather than the widest value actually present, which wastes space that
   could otherwise be used to show trailing columns.
+- `--version` or `-v`: prints the version and exits.
 
 It also accepts an argument filename to read from, if this filename isn't
 specified or specified as `-`, it will read from standard input.
