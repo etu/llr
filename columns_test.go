@@ -79,6 +79,29 @@ func TestCompactColumns(t *testing.T) {
 			},
 		},
 		{
+			// A blank value in the middle of an otherwise fixed-width table
+			// collapses into its neighboring separators, so that row splits
+			// into one fewer field than the others. Naively aligning fields
+			// by index would then shift MOUNTPOINT left into REFER's column.
+			//
+			// The zfs list shape is just reused here as a familiar example;
+			// zfs itself never leaves REFER blank like this. Other tools'
+			// output can, though, e.g. `docker ps`.
+			name: "blank value in the middle of a fixed-width column recovers its slot",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G    96K  legacy",
+				"zroot/local                                                                                       46.8G   154G    96K  legacy",
+				"zroot/safe/home                                                                                    160K   154G         legacy",
+			},
+			expected: []string{
+				"NAME              USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot            70.6G   154G    96K  legacy",
+				"zroot/local      46.8G   154G    96K  legacy",
+				"zroot/safe/home   160K   154G         legacy",
+			},
+		},
+		{
 			name: "passthrough for lines with no multi-space run",
 			lines: []string{
 				"just a single-spaced sentence",
