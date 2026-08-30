@@ -134,15 +134,20 @@ func compactColumns(lines []string) []string {
 
 	// Rows that split into fewer than the full column count are missing a
 	// blank value somewhere. Recover it by matching each such row against
-	// the column anchors established by rows that did split fully.
-	if maxFieldCount > 0 {
-		var fullRows []int
-		for i, fields := range fieldsPerLine {
-			if hadSeps[i] && len(fields) == maxFieldCount {
-				fullRows = append(fullRows, i)
-			}
+	// the column anchors established by rows that did split fully. A
+	// single full row isn't enough corroboration to trust as a reference:
+	// e.g. one row whose value happens to contain an accidental double
+	// space inflates maxFieldCount for that row alone, and matching every
+	// other (genuinely complete) row against it would just pad them all
+	// with a fabricated trailing column.
+	var fullRows []int
+	for i, fields := range fieldsPerLine {
+		if hadSeps[i] && len(fields) == maxFieldCount {
+			fullRows = append(fullRows, i)
 		}
+	}
 
+	if maxFieldCount > 0 && len(fullRows) >= 2 {
 		anchors := columnAnchors(fieldsPerLine, fullRows, maxFieldCount)
 		for i, fields := range fieldsPerLine {
 			if !hadSeps[i] || len(fields) == maxFieldCount {
@@ -208,7 +213,9 @@ func compactColumns(lines []string) []string {
 			}
 			b.WriteString("  ")
 		}
-		result[i] = b.String()
+		// A trailing column recovered as blank (e.g. a missing MOUNTPOINT)
+		// leaves its preceding separator with nothing after it.
+		result[i] = strings.TrimRight(b.String(), " ")
 	}
 
 	return result

@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+// Several cases below reuse zfs list's NAME/USED/AVAIL/REFER/MOUNTPOINT
+// column shape purely as a familiar, readable fixture. Except where a case
+// says otherwise, the values are fabricated to exercise a specific edge
+// case (a blank cell, an accidental double space, ...) and aren't
+// something zfs itself would actually produce.
 func TestCompactColumns(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -36,11 +41,13 @@ func TestCompactColumns(t *testing.T) {
 			},
 		},
 		{
-			// Real zfs list output: NAME's padding is fixed-width across all
-			// rows (so USED/AVAIL/REFER start at the same offset regardless
-			// of name length) while USED/AVAIL/REFER's own padding is on the
-			// left, right-aligning their values. Compaction should shrink
-			// the columns without flipping any of that alignment.
+			// Unlike the fabricated cases elsewhere in this file, this one
+			// is real, unmodified zfs list output: NAME's padding is
+			// fixed-width across all rows (so USED/AVAIL/REFER start at the
+			// same offset regardless of name length) while USED/AVAIL/REFER's
+			// own padding is on the left, right-aligning their values.
+			// Compaction should shrink the columns without flipping any of
+			// that alignment.
 			name: "right-aligned numeric columns keep their alignment",
 			lines: []string{
 				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
@@ -80,13 +87,10 @@ func TestCompactColumns(t *testing.T) {
 		},
 		{
 			// A blank value in the middle of an otherwise fixed-width table
-			// collapses into its neighboring separators, so that row splits
-			// into one fewer field than the others. Naively aligning fields
-			// by index would then shift MOUNTPOINT left into REFER's column.
-			//
-			// The zfs list shape is just reused here as a familiar example;
-			// zfs itself never leaves REFER blank like this. Other tools'
-			// output can, though, e.g. `docker ps`.
+			// (e.g. `docker ps` leaving a column empty) collapses into its
+			// neighboring separators, so that row splits into one fewer
+			// field than the others. Naively aligning fields by index would
+			// then shift MOUNTPOINT left into REFER's column.
 			name: "blank value in the middle of a fixed-width column recovers its slot",
 			lines: []string{
 				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
@@ -99,6 +103,114 @@ func TestCompactColumns(t *testing.T) {
 				"zroot            70.6G   154G    96K  legacy",
 				"zroot/local      46.8G   154G    96K  legacy",
 				"zroot/safe/home   160K   154G         legacy",
+			},
+		},
+		{
+			// realign matches one column at a time, so it should have no
+			// trouble with two blank values in the same row, adjacent or
+			// not, as long as each one is still bounded by real values it
+			// can anchor against.
+			name: "adjacent blank values are each recovered independently",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G    96K  legacy",
+				"zroot/local                                                                                       46.8G   154G    96K  legacy",
+				"zroot/safe/home                                                                                    160K                legacy",
+			},
+			expected: []string{
+				"NAME              USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot            70.6G   154G    96K  legacy",
+				"zroot/local      46.8G   154G    96K  legacy",
+				"zroot/safe/home   160K                legacy",
+			},
+		},
+		{
+			// A blank leading value doesn't merge into a neighboring
+			// separator the way a middle or trailing one does (there's no
+			// separator before it to merge with), so it already survives as
+			// a natural empty first field without needing realign at all.
+			// It's still worth pinning down: colWidths correctly shrinks to
+			// the widest *present* name once the widest one goes blank.
+			name: "blank leading value survives as a natural empty field",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G    96K  legacy",
+				"zroot/local                                                                                       46.8G   154G    96K  legacy",
+				"                                                                                                   160K   154G    96K  legacy",
+			},
+			expected: []string{
+				"NAME          USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot        70.6G   154G    96K  legacy",
+				"zroot/local  46.8G   154G    96K  legacy",
+				"              160K   154G    96K  legacy",
+			},
+		},
+		{
+			// A blank trailing value is stripped entirely by the initial
+			// TrimRight before splitting even starts, so realign has to
+			// reconstruct it from nothing via its "no more real fields"
+			// branch rather than an offset mismatch. Also guards against
+			// the recovered blank column leaving a dangling "  " separator
+			// with nothing after it.
+			name: "blank trailing value recovers without leaving trailing whitespace",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G    96K  legacy",
+				"zroot/local                                                                                       46.8G   154G    96K  legacy",
+				"zroot/safe/home                                                                                    160K   154G    96K",
+			},
+			expected: []string{
+				"NAME              USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot            70.6G   154G    96K  legacy",
+				"zroot/local      46.8G   154G    96K  legacy",
+				"zroot/safe/home   160K   154G    96K",
+			},
+		},
+		{
+			// A value that happens to contain an accidental internal
+			// double space (e.g. a quoted multi-word field) inflates that
+			// one row's field count above every other row's. Only one row
+			// reaching that count isn't enough corroboration to trust as a
+			// reference shape, so realign must not attempt it — otherwise
+			// every genuinely complete row would get padded with a
+			// fabricated trailing column to match.
+			name: "a lone row with an accidental double space doesn't corrupt the others",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G    96K  legacy",
+				"zroot/local                                                                                       46.8G   154G    96K  legacy",
+				"zroot/safe/home                                                                                    160K   154G    96K  legacy",
+				"zroot/tmp                                                                                          160K   154G    96K  legacy  extra",
+			},
+			expected: []string{
+				"NAME              USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot            70.6G   154G    96K  legacy",
+				"zroot/local      46.8G   154G    96K  legacy",
+				"zroot/safe/home   160K   154G    96K  legacy",
+				"zroot/tmp         160K   154G    96K  legacy      extra",
+			},
+		},
+		{
+			// Known limitation: if every data row is missing the same
+			// column, no row establishes its true shape except the header,
+			// and a single sample isn't enough to trust as a reference (see
+			// the double-space case above), so realign never attempts
+			// recovery here. The column silently disappears instead of
+			// coming back blank, and MOUNTPOINT's value ends up sharing
+			// REFER's column slot in the header. This documents the current
+			// behavior rather than asserting it's correct.
+			name: "a column blank on every row can't be recovered from the header alone",
+			lines: []string{
+				"NAME                                                                                               USED  AVAIL  REFER  MOUNTPOINT",
+				"zroot                                                                                             70.6G   154G         legacy",
+				"zroot/local                                                                                       46.8G   154G         legacy",
+				"zroot/safe/home                                                                                    160K   154G         legacy",
+			},
+			expected: []string{
+				"NAME              USED  AVAIL  REFER   MOUNTPOINT",
+				"zroot            70.6G   154G  legacy",
+				"zroot/local      46.8G   154G  legacy",
+				"zroot/safe/home   160K   154G  legacy",
 			},
 		},
 		{
