@@ -17,8 +17,8 @@ func main() {
 	flag.IntVar(width, "w", *width, "maximum width of the output")
 	debug := flag.Bool("debug", false, "enable debug output")
 	flag.BoolVar(debug, "d", *debug, "enable debug output")
-	compact := flag.Bool("compact", false, "compact wide columns to reduce wasted padding")
-	flag.BoolVar(compact, "c", *compact, "compact wide columns to reduce wasted padding")
+	compact := flag.Bool("compact", false, "compact wide columns to reduce wasted padding (reads all input before printing)")
+	flag.BoolVar(compact, "c", *compact, "compact wide columns to reduce wasted padding (reads all input before printing)")
 	showVersion := flag.Bool("version", false, "print the version and exit")
 	flag.BoolVar(showVersion, "v", *showVersion, "print the version and exit")
 	flag.Parse()
@@ -43,20 +43,33 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  filename: %s\n", filename)
 	}
 
-	// Read the file or stdin
-	contents, err := readFileOrStdin(filename)
+	// Compacting needs every row to work out the column widths, so it has
+	// to read the whole input first. Without it, lines are truncated and
+	// printed as they arrive, which keeps `journalctl -f | llr` live.
+	if *compact {
+		// Read the file or stdin
+		contents, err := readFileOrStdin(filename)
+		if err != nil {
+			log.Fatal("Error: ", err)
+		}
+
+		// Split the contents of the file into lines
+		lines := compactColumns(strings.Split(string(contents), "\n"))
+
+		if err := printLines(os.Stdout, *width, lines); err != nil {
+			log.Fatal("Error: ", err)
+		}
+
+		return
+	}
+
+	input, err := openInput(filename)
 	if err != nil {
 		log.Fatal("Error: ", err)
 	}
+	defer input.Close()
 
-	// Split the contents of the file into lines
-	lines := strings.Split(string(contents), "\n")
-
-	if *compact {
-		lines = compactColumns(lines)
-	}
-
-	if err := printLines(os.Stdout, *width, lines); err != nil {
+	if err := streamLines(input, os.Stdout, *width); err != nil {
 		log.Fatal("Error: ", err)
 	}
 }

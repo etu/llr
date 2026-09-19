@@ -5,20 +5,22 @@ import (
 	"os"
 )
 
-func readFileOrStdin(filename string) ([]byte, error) {
-	// Open the file or stdin
-	var reader io.Reader
-
+// openInput opens the named file for reading, or stdin if the name is "-".
+// The caller must Close the result; closing stdin's wrapper is a no-op.
+func openInput(filename string) (io.ReadCloser, error) {
 	if filename == "-" {
-		reader = os.Stdin
-	} else {
-		file, err := os.Open(filename)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-		reader = file
+		return io.NopCloser(os.Stdin), nil
 	}
+
+	return os.Open(filename)
+}
+
+func readFileOrStdin(filename string) ([]byte, error) {
+	reader, err := openInput(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
 
 	// Read the file or stdin
 	contents, err := io.ReadAll(reader)

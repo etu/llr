@@ -18,11 +18,20 @@ The following flags are available:
   width of their actual content before truncating. Many tools (such as
   `zfs list`) pad their first column to fit the widest *possible* value
   rather than the widest value actually present, which wastes space that
-  could otherwise be used to show trailing columns.
+  could otherwise be used to show trailing columns. Column widths depend
+  on every row, so this reads the whole input before printing anything and
+  isn't suitable for endless streams.
 - `--version` or `-v`: prints the version and exits.
 
 It also accepts an argument filename to read from, if this filename isn't
 specified or specified as `-`, it will read from standard input.
+
+Lines are printed as soon as they are read, so `llr` can be used on live
+streams:
+
+```sh
+journalctl -f | llr
+```
 
 ## Example usages
 
